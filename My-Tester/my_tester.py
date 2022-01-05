@@ -1,15 +1,39 @@
 import random
 
-def get_title(points):
-    if points == 5:
+def save_result(result):
+    file = open('results.txt', 'a')
+    file.write(result)
+    file.close()
+
+def get_results():
+    name = 'Имя'
+    points = 'Правильные ответы'
+    title = 'Звание'
+    print(f'{name:15}{points:25}{title:15}')
+    file = open('results.txt', 'r')
+    line = file.readline()
+    while line:
+        line = line.split('\\')
+        name = line[0]
+        points = line[1]
+        title = line[2].strip('\n')
+        print(f'{name:15}{points:25}{title:15}')
+        line = file.readline()
+
+    file.close()
+
+def get_title(points, questions):
+    right_answers_percent = points / questions * 100
+
+    if right_answers_percent == 100:
         return 'гений'
-    elif points == 4:
+    elif right_answers_percent >= 80 and right_answers_percent < 100:
         return 'талант'
-    elif points == 3:
+    elif right_answers_percent >= 50 and right_answers_percent < 80:
         return 'нормальный'
-    elif points == 2:
-        return 'урак'
-    elif points == 1:
+    elif right_answers_percent >= 20 and right_answers_percent < 50:
+        return 'дурак'
+    elif right_answers_percent > 0 and right_answers_percent < 20:
         return 'кретин'
     elif points == 0:
         return 'идиот'
@@ -35,25 +59,34 @@ def play():
     for i in range(number_of_questions):
         random_index = random.randint(0, len(questions) - 1)
         
-        print('Вопрос №', i + 1, sep='')
-        user_answer = int(input(questions[random_index] + ': '))
-
-        if user_answer == answers[random_index]:
+        print(f'Вопрос №{i+1}')
+        print(questions[random_index])
+        user_answer = input()
+        
+        while not user_answer.isdigit():
+            print('Введите число!')
+            user_answer = input()
+            
+        if int(user_answer) == answers[random_index]:
             right_answers_counter += 1
         
         questions.pop(random_index)
         answers.pop(random_index)
+        print()
 
-    print()
     print('Количество правильных ответов: ', right_answers_counter, '.', sep='')
-    title = get_title(right_answers_counter)
-    print('Поздравляем! ', user_name, ', вы - ', title, '!', sep='')
-    print()
+    title = get_title(right_answers_counter, number_of_questions)
+    print('Поздравляем! ', user_name, ', вы - ', title, '!', sep='', end='\n\n')
+
+    result = f'{user_name}\{right_answers_counter}\{title}\n'
+    save_result(result)
     
-    play_again = input('Хотите сыграть еще раз? Да/Нет: ')
+    play_again = input('Хотите сыграть еще раз? Да/Нет/Результаты: ')
 
     if play_again.upper() == 'ДА':
         play()
+    elif play_again.upper() == 'РЕЗУЛЬТАТЫ':
+        get_results()
     else:
         return
 
