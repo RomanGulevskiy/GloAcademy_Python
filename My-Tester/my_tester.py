@@ -2,6 +2,8 @@
 
 import random
 import os
+import jsonpickle
+
 
 class FileProvider:
     def read(self, path):
@@ -10,13 +12,8 @@ class FileProvider:
         file.close()
         return data
 
-    def clear(self, path):
+    def write(self, path, data):
         file = open(path, 'w', encoding='utf-8')
-        file.write('')
-        file.close()
-
-    def append(self, path, data):
-        file = open(path, 'a', encoding='utf-8')
         file.write(data)
         file.close()
 
@@ -31,18 +28,13 @@ class Question:
 
 
 class QuestionsStorage:
+    def __init__(self):
+        self.file = 'questions.json'
+
     def get_all(self):
-        questions = []
-
-        if file_provider.exists('questions.txt'):
-            data = file_provider.read('questions.txt').strip('\n')
-            data = data.split('\n')
-
-            for line in data:
-                values = line.split('\\')
-                question = Question(values[0], values[1])
-                questions.append(question)
-
+        if file_provider.exists(self.file):
+            data = file_provider.read(self.file)
+            questions = jsonpickle.decode(data)
         else:
             questions = [
                 Question('Сколько будет два плюс два умноженное на два?', 6),
@@ -57,21 +49,8 @@ class QuestionsStorage:
         return questions
 
     def save_questions(self, questions):
-        for question in questions:
-            self.add(question)
-
-    def add(self, question):
-        file = 'questions.txt'
-        data = f'{question.text}\{question.answer}\n'
-        file_provider.append(file, data)
-
-    def remove(self, index):
-        questions = self.get_all()
-        questions.pop(index)
-
-        file = 'questions.txt'
-        file_provider.clear(file)
-        self.save_questions(questions)
+        json_data = jsonpickle.encode(questions)
+        file_provider.write(self.file, json_data)
 
 
 class User:
@@ -85,37 +64,35 @@ class User:
 
 
 class UsersResultStorage:
-    def save(self, user):
-        file = 'results.txt'
-        data = f'{user.name}\{user.right_answers}\{user.title}\n'
-        file_provider = FileProvider()
-        file_provider.append(file, data)
+    def __init__(self):
+        self.file = 'results.json'
 
     def get_all(self):
-        file = 'results.txt'
-        file_provider = FileProvider()
-        data = file_provider.read(file).strip('\n')
-        data = data.split('\n')
-        users = []
+        if file_provider.exists(self.file):
+            data = file_provider.read(self.file)
+            results = jsonpickle.decode(data)
+        else:
+            results = []
 
-        for line in data:
-            values = line.split('\\')
-            user = User(values[0], values[1], values[2])
-            users.append(user)
-            
-        return users
+        return results
+
+    def save_results(self, result):
+        results = self.get_all()
+        results.append(result)
+        json_data = jsonpickle.encode(results)
+        file_provider.write(self.file, json_data)
 
 
 def show_user_results():
     name = 'Имя'
-    points = 'Правильные ответы'
+    points = 'Баллов'
     title = 'Звание'
-    print(f'{name:15}{points:25}{title:15}')
+    print(f'{name:15}{points:^10}{title:^15}')
 
     results = UsersResultStorage().get_all()
     
     for result in results:
-        print(f'{result.name:15}{result.right_answers:25}{result.title:15}')
+        print(f'{result.name:15}{result.right_answers:^10}{result.title:^15}')
 
 
 def get_title(points, questions):
@@ -151,12 +128,16 @@ def print_questions(questions):
 
 
 def add_question():
+    questions = questions_storage.get_all()
+
     print('Введите текст вопроса: ')
     text = input()
     print('Введите ответ: ')
     answer = get_user_answer()
+
     question = Question(text, answer)
-    questions_storage.add(question)
+    questions.append(question)
+    questions_storage.save_questions(questions)
 
 
 def remove_question():
@@ -171,7 +152,8 @@ def remove_question():
             print('Такого вопроса не существует!')
             continue
 
-        questions_storage.remove(user_input - 1)
+        questions.pop(user_input - 1)
+        questions_storage.save_questions(questions)
         print(f'Вопрос №{user_input} успешно удален!')
         break
 
@@ -179,7 +161,7 @@ def remove_question():
 questions_storage = QuestionsStorage()
 users_result_storage = UsersResultStorage()
 file_provider = FileProvider()
-
+jsonpickle.set_encoder_options('json', indent=4, separators=(',', ': '), ensure_ascii=False)
 
 def play():
     user_name = input('Как к вам можно обращаться? ')
@@ -206,7 +188,7 @@ def play():
     user.title = get_title(user.right_answers, number_of_questions)
     print('Поздравляем! ', user.name, ', вы - ', user.title, '!', sep='', end='\n\n')
 
-    users_result_storage.save(user)
+    users_result_storage.save_results(user)
     
     user_choice = input('Хотите посмотреть все результаты? Введите "ДА" или "НЕТ": ')
     if user_choice.upper() == 'ДА':
