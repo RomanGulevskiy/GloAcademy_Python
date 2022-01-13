@@ -2,6 +2,7 @@ import pygame
 import random
 
 pygame.init()
+pygame.font.init()
 
 FPS = 60
 WIDTH = 800
@@ -10,9 +11,12 @@ WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 
 display = pygame.display.set_mode((WIDTH, HEIGHT))
+display.fill(WHITE)
+
+font = pygame.font.SysFont('Verdana', 26)
+
 clock = pygame.time.Clock()
 
-display.fill(WHITE)
 
 class Ball:
     def __init__(self, display):
@@ -42,6 +46,11 @@ class Ball:
     def stop(self):
         self.vx = 0
         self.vy = 0
+
+    def on_screen(self):
+        x_sides = self.radius < self.center_x < WIDTH - self.radius
+        y_sides = self.radius < self.center_y < HEIGHT - self.radius
+        return x_sides and y_sides
 
 
 class RandomPointBall(Ball):
@@ -80,16 +89,13 @@ while True:
             counter = 0
             for ball in balls:
                 ball.stop()
-                print(ball.center_x, ball.center_y)
 
-                if ball.center_x + ball.radius >= 0 and ball.center_x + ball.radius <= WIDTH:
-                    if ball.center_y + ball.radius >= 0 and ball.center_y + ball.radius <= HEIGHT:
-                        print('+')
-                        counter += 1
-                    else:
-                        print('-')
+                if ball.on_screen():
+                    counter += 1
 
-            print(counter)
+            text = font.render('На экране осталось полных окружностей: ' + str(counter), True, (0, 0, 0))
+            display.blit(text, (100, 150))
+            print('На экране осталось полных окружностей:', counter)
 
     for ball in balls:
         ball.move()
