@@ -33,11 +33,7 @@ class Ball:
         self.center_x += self.vx
         self.center_y += self.vy
 
-    def clear(self):
-        pygame.draw.circle(display, WHITE, (self.center_x, self.center_y), self.radius)
-
     def move(self):
-        self.clear()
         self.go()
         self.show()
 
@@ -90,7 +86,6 @@ class BilliardBall(RandomPointMovingBall):
 def draw_text(display, text, x, y):
     font = pygame.font.SysFont('Verdana', 26)
     text_surface = font.render(text, True, (0, 0, 0))
-    pygame.draw.rect(display,(255,255,255), (x, y, 50, 50))
     display.blit(text_surface, (x, y))
 
 
@@ -107,6 +102,7 @@ counter_bottom_border = 0
 counter_left_border = 0
 counter_right_border = 0
 while True:
+    display.fill(WHITE)
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
@@ -119,16 +115,17 @@ while True:
     for ball in balls:
         if ball.center_x - ball.radius <= 0:
             counter_left_border += 1
-            draw_text(display, str(counter_left_border), 50, 270)
         elif ball.center_x + ball.radius >= WIDTH:
             counter_right_border += 1
-            draw_text(display, str(counter_right_border), WIDTH - 50, 270)
         elif ball.center_y - ball.radius <= 0:
             counter_top_border += 1
-            draw_text(display, str(counter_top_border), 400, 50)
         elif ball.center_y + ball.radius >= HEIGHT:
             counter_bottom_border += 1
-            draw_text(display, str(counter_bottom_border), 400, HEIGHT - 50)
+
+    draw_text(display, str(counter_left_border), 50, 270)
+    draw_text(display, str(counter_right_border), WIDTH - 50, 270)
+    draw_text(display, str(counter_top_border), 400, 50)
+    draw_text(display, str(counter_bottom_border), 400, HEIGHT - 50)
 
     pygame.display.update()
     clock.tick(FPS)
