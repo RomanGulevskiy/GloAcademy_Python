@@ -74,7 +74,8 @@ def print_school_info():
 
 
 def edit_school_info():
-    school = School()
+    school = School().get_info()
+    school_address = school.address
 
     print()
     print('Введите название школы: ')
@@ -82,6 +83,8 @@ def edit_school_info():
 
     print('Введите адрес школы: ')
     school.address = get_user_answer('school_address')
+    if len(school.address) == 0:
+        school.address = school_address
 
     school.save_info(school)
     print('Данные успешно сохранены!\n')
@@ -149,7 +152,10 @@ def add_student():
 def get_user_answer(input_type):
     user_input = input()
 
-    if input_type == 'name':
+    if input_type == 'school_address':
+        return user_input
+
+    elif input_type == 'name':
         error = 'error'
         while error != '':
             if len(user_input) == 0:
@@ -158,7 +164,7 @@ def get_user_answer(input_type):
                 user_input = input()
                 continue
 
-            elif not user_input.isalpha():
+            elif not user_input.replace(' ', '').isalpha():
                 error = 'Ошибка ввода! ФИО не может содержать цифры.'
                 print(error)
                 user_input = input()
