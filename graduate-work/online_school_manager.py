@@ -115,11 +115,11 @@ def remove_student():
         print('Введите номер ученика, которого хотите удалить:')
 
         user_input = get_user_answer('student_number')
-        if 0 > user_input > len(students):
+        if user_input < 0 or user_input > len(students):
             print('Такого ученика не существует.')
             continue
 
-        students.pop(int(user_input) - 1)
+        students.pop(user_input - 1)
         StudentsStorage().save(students)
         print(f'Ученик №{user_input} успешно удален!\n')
         break
@@ -176,7 +176,7 @@ def get_user_answer(input_type):
                 user_input = input()
                 continue
 
-            elif not user_input.lstrip("-").isdigit():
+            elif not user_input.lstrip('-').isdigit():
                 error = 'Ошибка ввода! Значение поля должно быть числом.'
                 print(error)
                 user_input = input()
@@ -200,7 +200,7 @@ def get_user_answer(input_type):
                 user_input = input()
                 continue
 
-            elif not user_input.isdigit():
+            elif not user_input.lstrip('-').isdigit():
                 error = 'Ошибка ввода! Значение поля должно быть числом.'
                 print(error)
                 user_input = input()
